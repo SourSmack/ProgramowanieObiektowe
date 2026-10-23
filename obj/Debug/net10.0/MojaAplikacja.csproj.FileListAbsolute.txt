@@ -1,0 +1,14 @@
+/home/sourish/c#/MojaAplikacja/bin/Debug/net10.0/MojaAplikacja
+/home/sourish/c#/MojaAplikacja/bin/Debug/net10.0/MojaAplikacja.deps.json
+/home/sourish/c#/MojaAplikacja/bin/Debug/net10.0/MojaAplikacja.runtimeconfig.json
+/home/sourish/c#/MojaAplikacja/bin/Debug/net10.0/MojaAplikacja.dll
+/home/sourish/c#/MojaAplikacja/bin/Debug/net10.0/MojaAplikacja.pdb
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.GeneratedMSBuildEditorConfig.editorconfig
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.AssemblyInfoInputs.cache
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.AssemblyInfo.cs
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.csproj.CoreCompileInputs.cache
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.dll
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/refint/MojaAplikacja.dll
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.pdb
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/MojaAplikacja.genruntimeconfig.cache
+/home/sourish/c#/MojaAplikacja/obj/Debug/net10.0/ref/MojaAplikacja.dll
