@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/sourish/c#/MojaAplikacja/MojaAplikacja.csproj",
+      "projectUniqueName": "/home/sourish/c#/Lab1/MojaAplikacja.csproj",
       "projectName": "MojaAplikacja",
-      "projectPath": "/home/sourish/c#/MojaAplikacja/MojaAplikacja.csproj",
+      "projectPath": "/home/sourish/c#/Lab1/MojaAplikacja.csproj",
       "packagesPath": "/home/sourish/.nuget/packages/",
-      "outputPath": "/home/sourish/c#/MojaAplikacja/obj/",
+      "outputPath": "/home/sourish/c#/Lab1/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/sourish/.nuget/NuGet/NuGet.Config"

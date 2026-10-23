@@ -1,9 +1,5 @@
 ﻿
 
-
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.InteropServices;
-
 class Car : IDisposable
 {
     //private static int CarCount = 0 ;
