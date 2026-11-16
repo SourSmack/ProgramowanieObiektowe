@@ -664,5 +664,4 @@ class Program
         Console.WriteLine("() Wykaz przedmiotów po usunięciu:");
         d1.ForEach<Subject>(p => Console.WriteLine(p));
         Console.WriteLine();
-    }
-}
+    } }
