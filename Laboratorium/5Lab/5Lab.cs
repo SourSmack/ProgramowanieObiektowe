@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
 namespace TravelAgency.Model
@@ -100,78 +99,6 @@ namespace TravelAgency.DAL
                 .WithMany();
         }
     }
-
-    public interface IRepository<T> where T : class
-    {
-        IEnumerable<T> GetAll();
-        IQueryable<T> Query();
-        T? GetById(int id);
-        IEnumerable<T> Find(Expression<Func<T, bool>> predicate);
-        void Add(T entity);
-        void Update(T entity);
-        void Remove(T entity);
-    }
-
-    public class Repository<T> : IRepository<T> where T : class
-    {
-        protected readonly TravelDbContext _context;
-        protected readonly DbSet<T> _dbSet;
-
-        public Repository(TravelDbContext context)
-        {
-            _context = context;
-            _dbSet = context.Set<T>();
-        }
-
-        public IEnumerable<T> GetAll() => _dbSet.ToList();
-
-        public IQueryable<T> Query() => _dbSet.AsQueryable();
-
-        public T? GetById(int id) => _dbSet.Find(id);
-
-        public IEnumerable<T> Find(Expression<Func<T, bool>> predicate) => _dbSet.Where(predicate).ToList();
-
-        public void Add(T entity) => _dbSet.Add(entity);
-
-        public void Update(T entity) => _dbSet.Update(entity);
-
-        public void Remove(T entity) => _dbSet.Remove(entity);
-    }
-
-    public interface IUnitOfWork : IDisposable
-    {
-        IRepository<Office> Offices { get; }
-        IRepository<Trip> Trips { get; }
-        IRepository<Customer> Customers { get; }
-        IRepository<TourGuide> TourGuides { get; }
-        IRepository<Attraction> Attractions { get; }
-        int SaveChanges();
-    }
-
-    public class UnitOfWork : IUnitOfWork
-    {
-        private readonly TravelDbContext _context;
-
-        public IRepository<Office> Offices { get; }
-        public IRepository<Trip> Trips { get; }
-        public IRepository<Customer> Customers { get; }
-        public IRepository<TourGuide> TourGuides { get; }
-        public IRepository<Attraction> Attractions { get; }
-
-        public UnitOfWork(TravelDbContext context)
-        {
-            _context = context;
-            Offices = new Repository<Office>(_context);
-            Trips = new Repository<Trip>(_context);
-            Customers = new Repository<Customer>(_context);
-            TourGuides = new Repository<TourGuide>(_context);
-            Attractions = new Repository<Attraction>(_context);
-        }
-
-        public int SaveChanges() => _context.SaveChanges();
-
-        public void Dispose() => _context.Dispose();
-    }
 }
 
 namespace TravelAgency.BLL
@@ -190,23 +117,23 @@ namespace TravelAgency.BLL
 
     public class OfficeService : IOfficeService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TravelDbContext _context;
 
-        public OfficeService(IUnitOfWork unitOfWork)
+        public OfficeService(TravelDbContext context)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
         public IEnumerable<Office> GetAllOffices()
         {
-            return _unitOfWork.Offices.Query()
+            return _context.Offices
                 .Include(o => o.Trips)
                 .ToList();
         }
 
         public Office? GetOfficeById(int id)
         {
-            return _unitOfWork.Offices.Query()
+            return _context.Offices
                 .Include(o => o.Trips)
                 .FirstOrDefault(o => o.OfficeId == id);
         }
@@ -217,27 +144,27 @@ namespace TravelAgency.BLL
                 throw new ArgumentException("Nazwa biura nie może być pusta.");
 
             var office = new Office { Name = name };
-            _unitOfWork.Offices.Add(office);
-            _unitOfWork.SaveChanges();
+            _context.Offices.Add(office);
+            _context.SaveChanges();
         }
 
         public void UpdateOffice(int id, string name)
         {
-            var office = _unitOfWork.Offices.GetById(id)
+            var office = _context.Offices.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono biura.");
 
             office.Name = name;
-            _unitOfWork.Offices.Update(office);
-            _unitOfWork.SaveChanges();
+            _context.Offices.Update(office);
+            _context.SaveChanges();
         }
 
         public void DeleteOffice(int id)
         {
-            var office = _unitOfWork.Offices.GetById(id)
+            var office = _context.Offices.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono biura.");
 
-            _unitOfWork.Offices.Remove(office);
-            _unitOfWork.SaveChanges();
+            _context.Offices.Remove(office);
+            _context.SaveChanges();
         }
     }
 
@@ -251,16 +178,16 @@ namespace TravelAgency.BLL
 
     public class TourGuideService : ITourGuideService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TravelDbContext _context;
 
-        public TourGuideService(IUnitOfWork unitOfWork)
+        public TourGuideService(TravelDbContext context)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
-        public IEnumerable<TourGuide> GetAllTourGuides() => _unitOfWork.TourGuides.GetAll();
+        public IEnumerable<TourGuide> GetAllTourGuides() => _context.TourGuides.ToList();
 
-        public TourGuide? GetTourGuideById(int id) => _unitOfWork.TourGuides.GetById(id);
+        public TourGuide? GetTourGuideById(int id) => _context.TourGuides.Find(id);
 
         public void CreateTourGuide(string firstName, string lastName)
         {
@@ -268,17 +195,17 @@ namespace TravelAgency.BLL
                 throw new ArgumentException("Imię i nazwisko przewodnika są wymagane.");
 
             var guide = new TourGuide { FirstName = firstName, LastName = lastName };
-            _unitOfWork.TourGuides.Add(guide);
-            _unitOfWork.SaveChanges();
+            _context.TourGuides.Add(guide);
+            _context.SaveChanges();
         }
 
         public void DeleteTourGuide(int id)
         {
-            var guide = _unitOfWork.TourGuides.GetById(id)
+            var guide = _context.TourGuides.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono przewodnika.");
 
-            _unitOfWork.TourGuides.Remove(guide);
-            _unitOfWork.SaveChanges();
+            _context.TourGuides.Remove(guide);
+            _context.SaveChanges();
         }
     }
 
@@ -292,16 +219,16 @@ namespace TravelAgency.BLL
 
     public class CustomerService : ICustomerService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TravelDbContext _context;
 
-        public CustomerService(IUnitOfWork unitOfWork)
+        public CustomerService(TravelDbContext context)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
-        public IEnumerable<Customer> GetAllCustomers() => _unitOfWork.Customers.GetAll();
+        public IEnumerable<Customer> GetAllCustomers() => _context.Customers.ToList();
 
-        public Customer? GetCustomerById(int id) => _unitOfWork.Customers.GetById(id);
+        public Customer? GetCustomerById(int id) => _context.Customers.Find(id);
 
         public void CreateCustomer(string firstName, string lastName)
         {
@@ -309,17 +236,17 @@ namespace TravelAgency.BLL
                 throw new ArgumentException("Imię i nazwisko klienta są wymagane.");
 
             var customer = new Customer { FirstName = firstName, LastName = lastName };
-            _unitOfWork.Customers.Add(customer);
-            _unitOfWork.SaveChanges();
+            _context.Customers.Add(customer);
+            _context.SaveChanges();
         }
 
         public void DeleteCustomer(int id)
         {
-            var customer = _unitOfWork.Customers.GetById(id)
+            var customer = _context.Customers.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono klienta.");
 
-            _unitOfWork.Customers.Remove(customer);
-            _unitOfWork.SaveChanges();
+            _context.Customers.Remove(customer);
+            _context.SaveChanges();
         }
     }
 
@@ -333,16 +260,16 @@ namespace TravelAgency.BLL
 
     public class AttractionService : IAttractionService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TravelDbContext _context;
 
-        public AttractionService(IUnitOfWork unitOfWork)
+        public AttractionService(TravelDbContext context)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
-        public IEnumerable<Attraction> GetAllAttractions() => _unitOfWork.Attractions.GetAll();
+        public IEnumerable<Attraction> GetAllAttractions() => _context.Attractions.ToList();
 
-        public Attraction? GetAttractionById(int id) => _unitOfWork.Attractions.GetById(id);
+        public Attraction? GetAttractionById(int id) => _context.Attractions.Find(id);
 
         public void CreateAttraction(string name)
         {
@@ -350,17 +277,17 @@ namespace TravelAgency.BLL
                 throw new ArgumentException("Nazwa atrakcji nie może być pusta.");
 
             var attraction = new Attraction { Name = name };
-            _unitOfWork.Attractions.Add(attraction);
-            _unitOfWork.SaveChanges();
+            _context.Attractions.Add(attraction);
+            _context.SaveChanges();
         }
 
         public void DeleteAttraction(int id)
         {
-            var attraction = _unitOfWork.Attractions.GetById(id)
+            var attraction = _context.Attractions.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono atrakcji.");
 
-            _unitOfWork.Attractions.Remove(attraction);
-            _unitOfWork.SaveChanges();
+            _context.Attractions.Remove(attraction);
+            _context.SaveChanges();
         }
     }
 
@@ -376,16 +303,16 @@ namespace TravelAgency.BLL
 
     public class TripService : ITripService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly TravelDbContext _context;
 
-        public TripService(IUnitOfWork unitOfWork)
+        public TripService(TravelDbContext context)
         {
-            _unitOfWork = unitOfWork;
+            _context = context;
         }
 
         public IEnumerable<Trip> GetAllTrips()
         {
-            return _unitOfWork.Trips.Query()
+            return _context.Trips
                 .Include(t => t.Office)
                 .Include(t => t.TourGuide)
                 .Include(t => t.Customers)
@@ -395,7 +322,7 @@ namespace TravelAgency.BLL
 
         public Trip? GetTripById(int id)
         {
-            return _unitOfWork.Trips.Query()
+            return _context.Trips
                 .Include(t => t.Office)
                 .Include(t => t.TourGuide)
                 .Include(t => t.Customers)
@@ -408,10 +335,10 @@ namespace TravelAgency.BLL
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Nazwa wycieczki nie może być pusta.");
 
-            if (_unitOfWork.Offices.GetById(officeId) == null)
+            if (_context.Offices.Find(officeId) == null)
                 throw new KeyNotFoundException("Wybrane biuro podróży nie istnieje.");
 
-            if (_unitOfWork.TourGuides.GetById(tourGuideId) == null)
+            if (_context.TourGuides.Find(tourGuideId) == null)
                 throw new KeyNotFoundException("Wybrany przewodnik nie istnieje.");
 
             var trip = new Trip
@@ -421,8 +348,8 @@ namespace TravelAgency.BLL
                 TourGuideId = tourGuideId
             };
 
-            _unitOfWork.Trips.Add(trip);
-            _unitOfWork.SaveChanges();
+            _context.Trips.Add(trip);
+            _context.SaveChanges();
         }
 
         public void AssignCustomerToTrip(int tripId, int customerId)
@@ -430,13 +357,13 @@ namespace TravelAgency.BLL
             var trip = GetTripById(tripId)
                 ?? throw new KeyNotFoundException("Nie znaleziono wycieczki.");
 
-            var customer = _unitOfWork.Customers.GetById(customerId)
+            var customer = _context.Customers.Find(customerId)
                 ?? throw new KeyNotFoundException("Nie znaleziono klienta.");
 
             if (!trip.Customers.Any(c => c.CustomerId == customerId))
             {
                 trip.Customers.Add(customer);
-                _unitOfWork.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
@@ -445,23 +372,23 @@ namespace TravelAgency.BLL
             var trip = GetTripById(tripId)
                 ?? throw new KeyNotFoundException("Nie znaleziono wycieczki.");
 
-            var attraction = _unitOfWork.Attractions.GetById(attractionId)
+            var attraction = _context.Attractions.Find(attractionId)
                 ?? throw new KeyNotFoundException("Nie znaleziono atrakcji.");
 
             if (!trip.Attractions.Any(a => a.AttractionId == attractionId))
             {
                 trip.Attractions.Add(attraction);
-                _unitOfWork.SaveChanges();
+                _context.SaveChanges();
             }
         }
 
         public void DeleteTrip(int id)
         {
-            var trip = _unitOfWork.Trips.GetById(id)
+            var trip = _context.Trips.Find(id)
                 ?? throw new KeyNotFoundException("Nie znaleziono wycieczki.");
 
-            _unitOfWork.Trips.Remove(trip);
-            _unitOfWork.SaveChanges();
+            _context.Trips.Remove(trip);
+            _context.SaveChanges();
         }
     }
 }
@@ -478,12 +405,11 @@ namespace TravelAgency.UI
             using var context = new TravelDbContext();
             context.Database.EnsureCreated();
 
-            using var unitOfWork = new UnitOfWork(context);
-            IOfficeService officeService = new OfficeService(unitOfWork);
-            ITourGuideService guideService = new TourGuideService(unitOfWork);
-            ICustomerService customerService = new CustomerService(unitOfWork);
-            IAttractionService attractionService = new AttractionService(unitOfWork);
-            ITripService tripService = new TripService(unitOfWork);
+            IOfficeService officeService = new OfficeService(context);
+            ITourGuideService guideService = new TourGuideService(context);
+            ICustomerService customerService = new CustomerService(context);
+            IAttractionService attractionService = new AttractionService(context);
+            ITripService tripService = new TripService(context);
 
             bool running = true;
             while (running)
